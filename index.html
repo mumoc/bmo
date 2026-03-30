@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  margin:0;
+  background:#A8E6D9;
+  overflow:hidden;
+}
+
+.face {
+  position:fixed;
+  width:100vw;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  transition: all 0.3s ease;
+}
+
+.eye {
+  width:6vw;
+  height:6vw;
+  background:black;
+  border-radius:50%;
+}
+
+.eyes {
+  display:flex;
+  gap:8vw;
+  margin-bottom:5vh;
+}
+
+.mouth {
+  width:12vw;
+  height:2vh;
+  background:black;
+  border-radius:10px;
+  transition: height 0.05s linear;
+}
+
+/* 👀 blinking */
+@keyframes blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+.eye {
+  animation: blink 4s infinite;
+}
+
+/* 🎭 states */
+.face.thinking .eye { transform: scale(0.9); }
+.face.talking .eye { transform: scale(1.05); }
+</style>
+</head>
+
+<body>
+
+<div class="face" id="face">
+  <div class="eyes">
+    <div class="eye"></div>
+    <div class="eye"></div>
+  </div>
+  <div class="mouth" id="mouth"></div>
+</div>
+
+<script>
+const face = document.getElementById("face");
+const mouth = document.getElementById("mouth");
+
+let currentState = "";
+let smoothVolume = 0;
+
+async function poll() {
+  try {
+    const res = await fetch("http://127.0.0.1:5050/state"); // 👈 important change
+    const data = await res.json();
+
+    console.log("STATE:", data); // 👈 DEBUG
+
+    // 🎭 state update
+    if (data.state !== currentState) {
+      currentState = data.state;
+      face.className = "face " + currentState;
+    }
+
+    // 👄 mouth sync
+    let target = data.volume || 0;
+    smoothVolume += (target - smoothVolume) * 0.4;
+
+    let height = 2 + (smoothVolume * 14);
+    mouth.style.height = height + "vh";
+
+  } catch (e) {
+    console.error("Polling error:", e); // 👈 DEBUG
+  }
+}
+
+// faster + smoother
+setInterval(poll, 50);
+</script>
+
+</body>
+</html>
