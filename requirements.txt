@@ -1,0 +1,8 @@
+flask
+flask-cors
+requests
+sounddevice
+numpy
+soundfile
+faster-whisper
+scipy
